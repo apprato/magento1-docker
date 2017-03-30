@@ -1,0 +1,52 @@
+version: '2'
+services:
+  mariadb:
+    hostname: mariadb
+    restart: always
+    image: mariadb:10.1.13
+    ports:
+      - 8005:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=AWic7x926t
+      - MYSQL_DATABASE=magento
+      - MYSQL_USER=magento
+      - MYSQL_PASSWORD=magento
+
+  php:
+    hostname: php
+    restart: always
+    #user: www-data
+    build: php
+    links:
+      - mariadb
+    expose:
+      - 9000
+    links:
+     - mariadb
+    volumes:
+      - ../../../www:/var/www/html/magento.dev
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+
+  nginx:
+    hostname: nginx
+    restart: always
+    image: nginx:latest
+    build: nginx
+    links:
+      - php
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/sites-enabled/magento.conf:/etc/nginx/conf.d/magento.conf
+      - ../../../www:/var/www/html/magento.dev
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+
+  redis:
+    hostname: redis
+    restart: always
+    image: redis
+    expose:
+      - 6379
+    ports:
+      - 6379:6379
